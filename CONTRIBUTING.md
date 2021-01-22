@@ -36,3 +36,9 @@ Please read the [Effective Go](https://golang.org/doc/effective_go.html) before 
 
 Unless otherwise noted, the Juggler source files are distributed under
 the MIT-style license found in the LICENSE file.
+
+## How to write code
+
+We recommend using https://www.conventionalcommits.org/ for the commit messages.
+
+Remember to reference the issue you are working on your commit messages, like git commit -a -m "[#5] <your_commit_message>."
