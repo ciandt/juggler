@@ -32,7 +32,7 @@ The recommended way to file an issue is by creating a Github issue answering the
 
 ## Contributing code
 
-Please read the [Effective Go](https://golang.org/doc/effective_go.html) before sending patches.
+Please read the website [Effective Go](https://golang.org/doc/effective_go.html) before sending patches.
 
 Unless otherwise noted, the Juggler source files are distributed under
 the MIT-style license found in the LICENSE file.
