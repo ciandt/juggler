@@ -13,7 +13,7 @@ build: clean
 
 test:
 	@echo -e "\nTESTING"
-	go test -v ./...
+	go test -v ./... -coverprofile=coverage.out
 
 run:
 	go run cmd/main.go
