@@ -17,3 +17,6 @@ test:
 
 run:
 	go run cmd/main.go
+
+install:
+	cp $(OUTPUT)/juggler /usr/local/bin/
