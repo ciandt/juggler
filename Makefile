@@ -1,6 +1,6 @@
-OUTPUT=build
+OUTPUT=output
 
-.PHONY: clean
+.PHONY: clean all run install 
 all: clean test build
 
 clean:
@@ -9,11 +9,14 @@ clean:
 
 build: clean
 	@echo -e "\nBUILDING $(OUTPUT)/juggler BINARY" 
-	mkdir -p ./$(OUTPUT) && go build -o $(OUTPUT)/juggler
+	mkdir -p ./$(OUTPUT) && go build -o $(OUTPUT)/juggler cmd/main.go
 
 test:
 	@echo -e "\nTESTING"
-	go test -v ./...
+	go test -v ./... -coverprofile=coverage.out
 
 run:
-	go run main.go
+	go run cmd/main.go
+
+install:
+	cp $(OUTPUT)/juggler /usr/local/bin/
