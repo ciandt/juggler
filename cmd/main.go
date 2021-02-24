@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"time"
 
 	"com.ciandt.juggler/internal"
 )
@@ -45,15 +46,19 @@ func main() {
 	}
 
 	ob := internal.Outbound{
-		Address:   outbound,
-		LocalPort: *port,
+		Address: outbound,
+	}
+
+	srv, err := internal.NewServer(*port, 2*time.Minute, 2*time.Minute)
+	if err != nil {
+		log.Fatal(err)
 	}
 
 	s5cfg, err := parseSocks5Config()
 
 	if err == nil {
 		log.Println("SOCKS5 config found, using it to proxy requests")
-		internal.ProxySocks5(ob, s5cfg)
+		srv.ProxySocks5(ob, s5cfg)
 	}
 
 }

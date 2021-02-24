@@ -1,11 +1,13 @@
 package internal
 
 import (
+	"errors"
 	"fmt"
 	"log"
 	"net/http"
 	"net/http/httputil"
 	"net/url"
+	"time"
 
 	"golang.org/x/net/proxy"
 )
@@ -18,25 +20,55 @@ type Socks5Config struct {
 	Password string
 }
 
-//Outbound holds all configuration related to the listener server and the actual
+//Outbound holds all configuration related to the actual
 //service to be called. It's a mandatory structure
 type Outbound struct {
-	Address   string
-	LocalPort int
+	Address string
+}
+
+//Server is the instance to expose the local endpoint to proxy
+//the request to the outbound service
+type Server struct {
+	Address      string
+	ReadTimeout  time.Duration
+	WriteTimeout time.Duration
+}
+
+//NewServer creates a new server instance. The port should be a valid
+//int used to host the local listener port (1-65535)
+func NewServer(
+	port int,
+	readTimeout time.Duration,
+	writeTimeout time.Duration,
+) (*Server, error) {
+
+	if port <= 0 || port > 65535 {
+		return &Server{}, errors.New("Invalid port number")
+	}
+
+	add := fmt.Sprintf(":%d", port)
+
+	return &Server{
+		Address:      add,
+		ReadTimeout:  readTimeout,
+		WriteTimeout: writeTimeout,
+	}, nil
+
 }
 
 //ProxySocks5 does a proxy using a socks5 custom transport
-func ProxySocks5(outbound Outbound, cfg Socks5Config) {
+func (srv *Server) ProxySocks5(outbound Outbound,
+	cfg Socks5Config) {
 	log.Printf("Creating Socks5 proxy for %s via SOCKS5://%s",
 		outbound.Address,
 		cfg.Address)
 
 	transport := createSocks5Transport(cfg)
 
-	doProxy(outbound, transport)
+	srv.doProxy(outbound, transport)
 }
 
-func doProxy(
+func (srv *Server) doProxy(
 	outbound Outbound,
 	transport *http.Transport) {
 
@@ -58,10 +90,9 @@ func doProxy(
 		rp.ServeHTTP(w, r)
 	})
 
-	lAddress := fmt.Sprintf(":%d", outbound.LocalPort)
-	log.Printf("Forwarding all requests made to the %s port to its proxy", lAddress)
+	log.Printf("Forwarding all requests made to %s to its proxy", srv.Address)
 
-	log.Fatal(http.ListenAndServe(lAddress, nil))
+	log.Fatal(http.ListenAndServe(srv.Address, nil))
 }
 
 func dropSchemaAndPort(address string) string {
