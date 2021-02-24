@@ -72,27 +72,17 @@ func (srv *Server) doProxy(
 	outbound Outbound,
 	transport *http.Transport) {
 
-	url, err := url.Parse(outbound.Address)
+	rpHandler := createReverseProxyHandler(outbound.Address, transport)
 
-	if err != nil {
-		log.Fatal(err)
+	s := http.Server{
+		Addr:         srv.Address,
+		ReadTimeout:  srv.ReadTimeout,
+		WriteTimeout: srv.WriteTimeout,
+		Handler:      rpHandler,
 	}
 
-	rp := httputil.NewSingleHostReverseProxy(url)
-	rp.Transport = transport
-
-	outHost := dropSchemaAndPort(outbound.Address)
-	log.Printf("Replacing the original request host \"localhost\" by the provided outbound \"%s\"", outHost)
-
-	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		r.Host = outHost
-		logRequest(r)
-		rp.ServeHTTP(w, r)
-	})
-
 	log.Printf("Forwarding all requests made to %s to its proxy", srv.Address)
-
-	log.Fatal(http.ListenAndServe(srv.Address, nil))
+	log.Fatal(s.ListenAndServe())
 }
 
 func dropSchemaAndPort(address string) string {
@@ -121,4 +111,27 @@ func createSocks5Transport(cfg Socks5Config) *http.Transport {
 
 func logRequest(r *http.Request) {
 	log.Printf("Forwarding request made to path %s", r.URL)
+}
+
+func createReverseProxyHandler(address string, transport *http.Transport) *http.ServeMux {
+
+	outHost := dropSchemaAndPort(address)
+	log.Printf("Replacing the original request host \"localhost\" by the provided outbound \"%s\"", outHost)
+
+	url, err := url.Parse(address)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	rp := httputil.NewSingleHostReverseProxy(url)
+	rp.Transport = transport
+
+	r := http.NewServeMux()
+	r.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		r.Host = outHost
+		logRequest(r)
+		rp.ServeHTTP(w, r)
+	})
+
+	return r
 }
