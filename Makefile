@@ -1,6 +1,6 @@
 OUTPUT=output
 
-.PHONY: clean
+.PHONY: clean all run install 
 all: clean test build
 
 clean:
