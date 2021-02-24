@@ -25,13 +25,21 @@ type Outbound struct {
 	LocalPort int
 }
 
-//ProxySocks5 creates a SingleHostReverseProxy setting its Transport a new
-//socks5 custom transport and modifies the original host to the
-//provided outbound
+//ProxySocks5 does a proxy using a socks5 custom transport
 func ProxySocks5(outbound Outbound, cfg Socks5Config) {
 	log.Printf("Creating Socks5 proxy for %s via SOCKS5://%s",
 		outbound.Address,
 		cfg.Address)
+
+	transport := createSocks5Transport(cfg)
+
+	doProxy(outbound, transport)
+}
+
+func doProxy(
+	outbound Outbound,
+	transport *http.Transport) {
+
 	url, err := url.Parse(outbound.Address)
 
 	if err != nil {
@@ -39,7 +47,7 @@ func ProxySocks5(outbound Outbound, cfg Socks5Config) {
 	}
 
 	rp := httputil.NewSingleHostReverseProxy(url)
-	rp.Transport = createSocks5Transport(cfg)
+	rp.Transport = transport
 
 	outHost := dropSchemaAndPort(outbound.Address)
 	log.Printf("Replacing the original request host \"localhost\" by the provided outbound \"%s\"", outHost)
