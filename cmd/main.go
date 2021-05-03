@@ -24,7 +24,7 @@ Example: SOCKS5 proxy running on localhost:3500 requesting
 server on https://my-protected-api.com:9000 being accessed
 on localhost:12345
 
-juggler -p 12345 -s5.address=localhost:9000 -s5.user=socks_user -s5.password=socks_pass https://my-protected-api.com:9000
+juggler -port 12345 -s5.address=localhost:9000 -s5.user=socks_user -s5.password=socks_pass https://my-protected-api.com:9000
 	
 `
 )
@@ -61,6 +61,7 @@ func main() {
 		srv.ProxySocks5(ob, s5cfg)
 	}
 
+	srv.ProxyDefaultTCP(ob)
 }
 
 func parseSocks5Config() (internal.Socks5Config, error) {
