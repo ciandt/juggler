@@ -7,7 +7,7 @@ clean:
 	@echo -e "\nCLEANING $(OUTPUT) DIRECTORY"
 	rm -rf ./$(OUTPUT)
 
-build: clean
+build: clean test
 	@echo -e "\nBUILDING $(OUTPUT)/juggler BINARY" 
 	mkdir -p ./$(OUTPUT) && go build -o $(OUTPUT)/juggler cmd/main.go
 
@@ -18,5 +18,5 @@ test:
 run:
 	go run cmd/main.go
 
-install:
-	cp $(OUTPUT)/juggler /usr/local/bin/
+install: build
+	sudo cp $(OUTPUT)/juggler /usr/local/bin/
