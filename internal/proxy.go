@@ -88,7 +88,7 @@ func (srv *Server) doTCPProxy(outbound Outbound) {
 	for {
 		conn, err := ln.Accept()
 		if err != nil {
-			panic(err)
+			panic("Unable to create connection with requesting client: " + err.Error())
 		}
 
 		go handleRequest(conn, outbound)
