@@ -20,12 +20,18 @@ var errInvalidSocks5Address = errors.New("Invalid SOCKS5 address")
 const (
 	help = `Usage: juggler [proxy_config] [-p local_port] outbound_address
 	
-Example: SOCKS5 proxy running on localhost:3500 requesting 
+=> Example 1: SOCKS5 proxy running on localhost:3500 requesting 
 server on https://my-protected-api.com:9000 being accessed
 on localhost:12345
 
-juggler -p 12345 -s5.address=localhost:9000 -s5.user=socks_user -s5.password=socks_pass https://my-protected-api.com:9000
+juggler -port 12345 -s5.address=localhost:9000 -s5.user=socks_user -s5.password=socks_pass https://my-protected-api.com:9000
 	
+
+=> Example 2: Local port forwarding from localhost:3307 to localhost:3306
+juggler -port 3307 localhost:3306
+
+
+Possible flags:
 `
 )
 
@@ -61,6 +67,7 @@ func main() {
 		srv.ProxySocks5(ob, s5cfg)
 	}
 
+	srv.ProxyDefaultTCP(ob)
 }
 
 func parseSocks5Config() (internal.Socks5Config, error) {

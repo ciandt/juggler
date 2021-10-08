@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"net"
 	"net/http"
 	"net/http/httputil"
 	"net/url"
@@ -57,6 +58,15 @@ func NewServer(
 }
 
 //ProxySocks5 does a proxy using a socks5 custom transport
+func (srv *Server) ProxyDefaultTCP(outbound Outbound) {
+	log.Printf("Creating Default TCP proxy for %s",
+		outbound.Address)
+
+	srv.doTCPProxy(outbound)
+
+}
+
+//ProxySocks5 does a proxy using a socks5 custom transport
 func (srv *Server) ProxySocks5(outbound Outbound,
 	cfg Socks5Config) {
 	log.Printf("Creating Socks5 proxy for %s via SOCKS5://%s",
@@ -65,10 +75,27 @@ func (srv *Server) ProxySocks5(outbound Outbound,
 
 	transport := createSocks5Transport(cfg)
 
-	srv.doProxy(outbound, transport)
+	srv.doHTTPProxy(outbound, transport)
 }
 
-func (srv *Server) doProxy(
+func (srv *Server) doTCPProxy(outbound Outbound) {
+
+	ln, err := net.Listen("tcp", srv.Address)
+	if err != nil {
+		panic("Unable to acquire address " + srv.Address)
+	}
+
+	for {
+		conn, err := ln.Accept()
+		if err != nil {
+			panic("Unable to create connection with requesting client: " + err.Error())
+		}
+
+		go handleRequest(conn, outbound)
+	}
+}
+
+func (srv *Server) doHTTPProxy(
 	outbound Outbound,
 	transport *http.Transport) {
 
@@ -134,4 +161,17 @@ func createReverseProxyHandler(address string, transport *http.Transport) *http.
 	})
 
 	return r
+}
+
+func handleRequest(conn net.Conn, outbound Outbound) {
+
+	log.Printf("New request received for outbound " + outbound.Address)
+
+	proxy, err := net.Dial("tcp", outbound.Address)
+	if err != nil {
+		panic("Unable to call outbound endpoint " + err.Error())
+	}
+
+	go copyIO(conn, proxy)
+	go copyIO(proxy, conn)
 }
