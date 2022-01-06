@@ -13,7 +13,7 @@ If you are unsure whether you have found a bug or a new feature request, please 
 If you are sure that you have found a bug or a possible new feature, submit an issue.
 
 ### Filing feature requests
-The recommended way to file for a feature request is by creating a Github issue answering these five questions:
+The recommended way to file for a feature request is by creating a Github issue answering these three questions:
 
 1. What is the purpose of this feature?
 2. What are the expected behaviors of it?
